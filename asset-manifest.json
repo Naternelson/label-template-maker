@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/label-template-maker/static/css/main.f4392d2e.css",
+    "main.js": "/label-template-maker/static/js/main.faf85e70.js",
+    "static/js/453.27dbf951.chunk.js": "/label-template-maker/static/js/453.27dbf951.chunk.js",
+    "index.html": "/label-template-maker/index.html",
+    "main.f4392d2e.css.map": "/label-template-maker/static/css/main.f4392d2e.css.map",
+    "main.faf85e70.js.map": "/label-template-maker/static/js/main.faf85e70.js.map",
+    "453.27dbf951.chunk.js.map": "/label-template-maker/static/js/453.27dbf951.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.f4392d2e.css",
+    "static/js/main.faf85e70.js"
+  ]
+}
