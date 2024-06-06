@@ -1,6 +1,7 @@
 import { RefObject, forwardRef, useEffect, useState } from 'react';
-import { Box, alpha } from '@mui/material';
+import { Box } from '@mui/material';
 import { useTemplateSelector } from '../Container/store';
+import { MarginIndicators } from './MarginIndicator';
 
 export const SheetWidthIndicator = (props: { anchorRef: RefObject<HTMLDivElement> }) => {
 	const [show, setShow] = useState(false);
@@ -100,19 +101,11 @@ export const SheetHeightIndicator = (props: { anchorRef: RefObject<HTMLDivElemen
 				setPosition({ top, left });
 			}
 		};
-
-		// Initialize ResizeObserver
 		const resizeObserver = new ResizeObserver(() => {
 			updatePosition();
 		});
-
-		// Observe the anchor element
 		resizeObserver.observe(r);
-
-		// Update position initially
 		updatePosition();
-
-		// Cleanup observer on unmount
 		return () => {
 			resizeObserver.unobserve(r);
 		};
@@ -159,7 +152,7 @@ export const SheetHeightIndicator = (props: { anchorRef: RefObject<HTMLDivElemen
 				sx={{
 					position: 'absolute',
 					backgroundColor: (t) => t.palette.primary.dark,
-                    borderRadius: '25%',
+					borderRadius: '25%',
 					height: '100%',
 					width: '1px',
 					left: '50%',
@@ -174,14 +167,16 @@ export const Sheet = forwardRef<HTMLDivElement>((_p, ref) => {
 	const zoom = useTemplateSelector((s) => s.zoom);
 	return (
 		<Box
-        id={"sheet"}
+			id={'sheet'}
 			ref={ref}
 			sx={{
-				scale: `${zoom}`,
 				transformOrigin: 'top left',
 				marginLeft: 'auto',
 				marginRight: 'auto',
-				transition: 'all 0.1s ease-out',
+				transform: `scale(${zoom})`,
+				transitionProperty: 'width, height, transform',
+				transitionDuration: '0.1s',
+				transitionTimingFunction: 'ease-out',	
 				color: 'black',
 				position: 'relative',
 				width: props.width,
@@ -189,17 +184,17 @@ export const Sheet = forwardRef<HTMLDivElement>((_p, ref) => {
 				boxShadow: '0 0 0 1px rgba(0,0,0,.1), 0 2px 4px rgba(0,0,0,.1), 0 8px 16px rgba(0,0,0,.1)',
 				backgroundColor: props.backgroundColor,
 				borderRadius: '2.5px',
-				paddingTop: props.marginTop,
-				paddingBottom: props.marginBottom,
-				paddingLeft: props.marginLeft,
-				paddingRight: props.marginRight,
 			}}>
+			<MarginIndicators />
 			<Box
 				aria-label={'SheetContents'}
 				sx={{
 					width: '100%',
 					height: '100%',
-					outline: (t) => `1px solid ${alpha(t.palette.primary.light, 0.8)}`,
+					paddingTop: props.marginTop,
+					paddingBottom: props.marginBottom,
+					paddingLeft: props.marginLeft,
+					paddingRight: props.marginRight,
 				}}>
 				Sheet Contents
 			</Box>

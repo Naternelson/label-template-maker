@@ -31,6 +31,10 @@ export const SheetWidthSlider = () => {
 		throttleDispatch(currentValue);
 	}, [currentValue, throttleDispatch]);
 
+	useEffect(() =>{
+		setCurrentValue(width);
+	},[width]);
+
 	return (
 		<ControlSlider
 			startAdornment={

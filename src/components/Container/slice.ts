@@ -186,21 +186,21 @@ type LabelType = Position & {
 	borderRadius?: string;
 	elements: string[];
 };
-
-export const DefaultLabelSizes = {
-	'Standard Letter - Full Page': {
+export const DefaultLabelSizes: { [key: string]: { width: string; height: string; borderRadius: string } } = {
+	// Most common sizes at the top
+	'Standard Letter': {
 		width: '8.5in',
 		height: '11in',
 		borderRadius: '0',
 	},
-	'Standard A4 - Full Page': {
+	'Standard A4': {
 		width: '8.27in',
 		height: '11.69in',
 		borderRadius: '0',
 	},
-	'Avery 5160': {
-		width: '2.63in',
-		height: '1in',
+	'Avery 5169': {
+		width: '6in',
+		height: '4in',
 		borderRadius: '0',
 	},
 	'Avery 5163': {
@@ -208,19 +208,20 @@ export const DefaultLabelSizes = {
 		height: '2in',
 		borderRadius: '0',
 	},
+	'Avery 5160': {
+		width: '2.63in',
+		height: '1in',
+		borderRadius: '0',
+	},
+
 	'Avery 5164': {
 		width: '4in',
 		height: '3.33in',
 		borderRadius: '0',
 	},
-	'Avery 5195': {
-		width: '2.13in',
-		height: '0.75in',
-		borderRadius: '0',
-	},
-	'Avery 5167': {
-		width: '0.5in',
-		height: '1.75in',
+	'Avery 5165': {
+		width: '8.5in',
+		height: '11in',
 		borderRadius: '0',
 	},
 	'Avery 5168': {
@@ -228,14 +229,46 @@ export const DefaultLabelSizes = {
 		height: '5in',
 		borderRadius: '0',
 	},
-	'Avery 5169': {
-		width: '4in',
-		height: '6in',
+	'Avery 5395': {
+		width: '2.25in',
+		height: '3.5in',
 		borderRadius: '0',
 	},
-	'Avery 5371': {
-		width: '2in',
-		height: '3.5in',
+	'Avery 8160': {
+		width: '2.63in',
+		height: '1in',
+		borderRadius: '0',
+	},
+	'Avery 8163': {
+		width: '4in',
+		height: '2in',
+		borderRadius: '0',
+	},
+	'Avery 8164': {
+		width: '4in',
+		height: '3.33in',
+		borderRadius: '0',
+	},
+	'Avery 8460': {
+		width: '2.63in',
+		height: '1in',
+		borderRadius: '0',
+	},
+	'Avery 8463': {
+		width: '4in',
+		height: '2in',
+		borderRadius: '0',
+	},
+	'Avery 8464': {
+		width: '4in',
+		height: '3.33in',
+		borderRadius: '0',
+	},
+	// Full-page and 6x4 labels
+
+	'Avery 8520': {
+		width: '2.625in',
+		height: '1in',
 		borderRadius: '0',
 	},
 	'Avery 5383': {
@@ -244,6 +277,7 @@ export const DefaultLabelSizes = {
 		borderRadius: '0',
 	},
 };
+
 type SheetType = {
 	id: string;
 	width: string;
@@ -291,6 +325,7 @@ const initialState = {
 	showGrid: true,
 	viewPortWidth: 0 as number,
 	viewPortHeight: 0 as number,
+	mode: "select" as "select" | "insert-text"
 };
 
 const slice = createSlice({
@@ -413,6 +448,17 @@ const slice = createSlice({
 		setViewPortDimensions: (state, action: PayloadAction<{ width: number; height: number }>) => {
 			state.viewPortWidth = action.payload.width;
 			state.viewPortHeight = action.payload.height;
+		},
+		incrementZoom: (state, action: PayloadAction<number>) => {
+			state.zoom += action.payload;
+			if(state.zoom > 3) state.zoom = 3
+			if(state.zoom < 0.25) state.zoom = 0.25
+		}, 
+		resetMode: (state) => {
+			state.mode = "select"
+		}, 
+		setMode: (state, action: PayloadAction<typeof initialState["mode"]>) => {
+			state.mode = action.payload
 		}
 	},
 });
@@ -451,7 +497,8 @@ export const {
     addVariable,
     removeVariable,
     updateVariable,
-	setViewPortDimensions
+	setViewPortDimensions,
+	incrementZoom
 } = slice.actions;
 
 export default slice.reducer;

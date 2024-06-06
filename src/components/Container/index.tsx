@@ -1,11 +1,11 @@
-import { RefObject, forwardRef, useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { Provider } from 'react-redux';
 import { store, useTemplateDisplatch, useTemplateSelector } from './store';
 import styled from '@emotion/styled';
 import { Box, Stack, Toolbar } from '@mui/material';
 import { PropertiesPanel } from '../PropertiesPanel';
-import { BorderColor, PanelColor, backgroundColor, lineColor, useZoomToWidth } from '../util';
-import { setViewPortDimensions, setZoom } from './slice';
+import { BorderColor, PanelColor, backgroundColor, lineColor } from '../util';
+import { incrementZoom, setViewPortDimensions } from './slice';
 import { Sheet, SheetHeightIndicator, SheetWidthIndicator } from '../Sheet';
 
 export const LabelTemplateRoom = () => {
@@ -58,13 +58,14 @@ export const DesignBackground = styled('div')({
 });
 
 const TemplateToolBar = () => {
-	return <Toolbar sx={{ border: `1px solid ${BorderColor}`, backgroundColor: PanelColor }} />;
+	return <Toolbar sx={{ zIndex: 2, border: `1px solid ${BorderColor}`, backgroundColor: PanelColor }} />;
 };
 
 const ElementViewPanel = () => {
 	return (
 		<Box
 			sx={{
+				zIndex: 2,
 				border: `1px solid ${BorderColor}`,
 				borderTop: 'none',
 				boxSizing: 'border-box',
@@ -77,39 +78,30 @@ const ElementViewPanel = () => {
 
 const SheetsContainer = () => {
 	const sheetsRef = useRef<HTMLDivElement>(null);
-	const paddingRef = useRef<HTMLDivElement>(null);
 	const ref = useRef<HTMLDivElement>(null);
-    const zoomToFit = useZoomToWidth();
 	const zoom = useTemplateSelector((s) => s.zoom);
-	const width = useTemplateSelector((s) => s.sheet.width);
-	const height = useTemplateSelector((s) => s.sheet.height);
 	const dispatch = useTemplateDisplatch();
 
 	useEffect(() => {
-		// Set the container height and width when the component mounts or resizes
 		const handleResize = () => {
-			if (ref.current) {
+			if (ref.current)
 				dispatch(setViewPortDimensions({ width: ref.current.clientWidth, height: ref.current.clientHeight }));
-			}
-			if (ref.current && sheetsRef.current) zoomToFit(sheetsRef.current);
 		};
 		handleResize();
 		window.addEventListener('resize', handleResize);
 		return () => {
 			window.removeEventListener('resize', handleResize);
 		};
-	}, [dispatch, zoomToFit]);
+	}, [dispatch]);
 
-	// round to 2 decimal places
-	const roundTo2Decimals = (num: number) => Math.round(num * 100) / 100;
 	const handleWheel = useCallback(
 		(e: WheelEvent) => {
 			if (e.ctrlKey) {
 				e.preventDefault();
 				e.stopPropagation();
 				const delta = e.deltaY > 0 ? -0.25 : 0.25;
-				const newZoom = Math.max(0.25, Math.min(3, roundTo2Decimals(zoom + delta)));
-				dispatch(setZoom(newZoom.toString()));
+				if (zoom + delta < 0.25 || zoom + delta > 3) return;
+				dispatch(incrementZoom(delta));
 			}
 		},
 		[zoom, dispatch],
@@ -125,91 +117,40 @@ const SheetsContainer = () => {
 	}, [handleWheel]);
 
 	return (
-		<Box
-			id="sheets-container"
-			ref={ref}
-			sx={{
-				position: 'relative',
-				padding: '5rem',
-				maxHeight: '100%',
-				flex: 1,
-				overflow: 'auto',
-				scrollbarColor: `${BorderColor} ${PanelColor}`,
-				scrollbarWidth: 'thin',
-				'&::-webkit-scrollbar': {
-					width: '12px',
-					height: '12px',
-				},
-				'&::-webkit-scrollbar-thumb': {
-					backgroundColor: BorderColor,
-					borderRadius: '6px',
-					border: `3px solid ${PanelColor}`,
-				},
-				'&::-webkit-scrollbar-track': {
-					backgroundColor: PanelColor,
-					borderRadius: '6px',
-				},
-			}}>
+		<StyledSheetContainer id="sheets-container" ref={ref}>
 			<Sheet ref={sheetsRef} />
-			<ZoomPadding ref={paddingRef} anchorRef={sheetsRef} width={width} height={height} zoom={zoom} />
 			<SheetWidthIndicator anchorRef={sheetsRef} />
 			<SheetHeightIndicator anchorRef={sheetsRef} />
-		</Box>
+			{/* <MarginLeftIndicator anchorRef={sheetsRef} />
+			<MarginRightIndicator anchorRef={sheetsRef} />
+			<MarginTopIndicator anchorRef={sheetsRef} />
+			<MarginBottomIndicator anchorRef={sheetsRef} /> */}
+		</StyledSheetContainer>
 	);
 };
-type ZooomPaddingProps = {
-	width: string;
-	height: string;
-	zoom: number;
-	anchorRef: RefObject<HTMLDivElement>;
-};
-const ZoomPadding = forwardRef<HTMLDivElement, ZooomPaddingProps>((props, ref) => {
-	const [position, setPosition] = useState({ top: 0, left: 0 });
 
-	useEffect(() => {
-		const r = props.anchorRef.current;
-		if (!r) return;
-
-		const updatePosition = () => {
-			const parentRect = r.parentElement?.getBoundingClientRect();
-			const childRect = r.getBoundingClientRect();
-			if (parentRect && childRect) {
-				const top = childRect.top - parentRect.top;
-				const left = childRect.left - parentRect.left;
-				setPosition({ top, left });
-			}
-		};
-
-		// Initialize ResizeObserver
-		const resizeObserver = new ResizeObserver(() => {
-			updatePosition();
-		});
-
-		// Observe the anchor element
-		resizeObserver.observe(r);
-
-		// Update position initially
-		updatePosition();
-
-		// Cleanup observer on unmount
-		return () => {
-			resizeObserver.unobserve(r);
-		};
-	}, [props.anchorRef]);
-
-	return (
-		<Box
-			id="zoom-padding"
-			ref={ref}
-			sx={{
-				pointerEvents: 'none',
-				width: `calc(calc(calc(${props.width} * ${props.zoom}) + ${position.left}px) - 10px)`,
-				height: `calc(calc(calc(${props.height} * ${props.zoom}) + ${position.top}px), - 10px)`,
-				position: 'absolute',
-				// outline: '1px solid blue',
-				top: position.top,
-				left: position.left,
-			}}
-		/>
-	);
+const StyledSheetContainer = styled('div')({
+	zIndex: 1,
+	position: 'relative',
+	flex: 1,
+	overflow: 'auto',
+	padding: '5rem',
+	maxHeight: '100%',
+	paddingRight: 'calc(5rem + 12px)',
+	paddingBottom: 'calc(5rem + 12px)',
+	scrollbarColor: `${BorderColor} ${PanelColor}`,
+	scrollbarWidth: 'thin',
+	'&::-webkit-scrollbar': {
+		width: '12px',
+		height: '12px',
+	},
+	'&::-webkit-scrollbar-thumb': {
+		backgroundColor: BorderColor,
+		borderRadius: '6px',
+		border: `3px solid ${PanelColor}`,
+	},
+	'&::-webkit-scrollbar-track': {
+		backgroundColor: PanelColor,
+		borderRadius: '6px',
+	},
 });

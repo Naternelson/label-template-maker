@@ -32,6 +32,10 @@ export const SheetHeightSlider = () => {
 		throttleDispatch(currentValue);
 	}, [currentValue, throttleDispatch]);
 
+	useEffect(() =>{
+		setCurrentValue(height);
+	},[height]);
+
 	return (
 		<ControlSlider
 			startAdornment={

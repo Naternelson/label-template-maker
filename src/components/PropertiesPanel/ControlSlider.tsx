@@ -73,7 +73,6 @@ export const ControlSlider = (props: ControlSliderProps) => {
 			sx={{
 				boxSizing: 'border-box',
 				paddingTop: '0.25rem',
-				paddingX: '1rem',
 				fontSize: (t) => t.typography.caption.fontSize,
 			}}>
 			<Grid
@@ -83,6 +82,7 @@ export const ControlSlider = (props: ControlSliderProps) => {
 				display={'flex'}
 				sx={{
 					alignItems: 'center',
+					justifyContent: "space-between", // "flex-start
 					border: '1px solid transparent',
 					paddingX: '.5rem',
 					paddingY: '.25rem',

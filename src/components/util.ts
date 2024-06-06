@@ -78,20 +78,27 @@ export const useZoomToWidth = () => {
 
 	return useCallback(
 		(content: HTMLDivElement) => {
-			const parentWidth = content.parentElement?.getBoundingClientRect()?.width || 0
-			if (parentWidth === 0) return;
+			// const parentWidth = content.parentElement?.getBoundingClientRect()?.width || 0
+			// if (parentWidth === 0) return;
 
-			const contentRect = content.getBoundingClientRect();
-			const padding = contentRect.left
+			// const contentRect = content.getBoundingClientRect();
+			// const padding = contentRect.left
 
-			// Width is written in inches, so we need to convert it to pixels
-			const convertedWidth = parseFloat(width) * 96;
-			const perfectWidth = parentWidth
-			const newZoom = ((perfectWidth) / (convertedWidth+ padding)).toFixed(2);
+			// // Width is written in inches, so we need to convert it to pixels
+			// const convertedWidth = parseFloat(width) * 96;
+			// const perfectWidth = parentWidth
+			// const newZoom = ((perfectWidth) / (convertedWidth+ padding)).toFixed(2);
 
-			console.log({parent: content.parentElement?.getBoundingClientRect(), contentRect});
+			// console.log({parent: content.parentElement?.getBoundingClientRect(), contentRect});
 
-			dispatch(setZoom(newZoom));
+			// dispatch(setZoom(newZoom));
+			const parent = content.parentElement;
+			if (!parent) return;
+			const parentWidth = parent.offsetWidth;
+			const contentWidth = parseFloat(width) * 96;
+			if (contentWidth === 0 || parentWidth === 0) return;
+			const newZoom =  parentWidth /(contentWidth +300)
+			dispatch(setZoom(newZoom.toFixed(2)));
 		},
 		[dispatch, width],
 	);
